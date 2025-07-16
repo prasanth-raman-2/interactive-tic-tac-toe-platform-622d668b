@@ -1,49 +1,57 @@
-import React, { useState, useEffect } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import Login from './components/Login';
+import Game from './components/Game';
 
-// PUBLIC_INTERFACE
-function App() {
-  const [theme, setTheme] = useState('light');
+const theme = createTheme({
+  palette: {
+    mode: 'light',
+    primary: {
+      main: '#1976d2',
+    },
+    secondary: {
+      main: '#424242',
+    },
+    accent: {
+      main: '#fbc02d',
+    },
+    background: {
+      default: '#ffffff',
+      paper: '#f8f9fa',
+    },
+  },
+});
 
-  // Effect to apply theme to document element
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme);
-  }, [theme]);
+const PrivateRoute = ({ children }) => {
+  const { user } = useAuth();
+  return user ? children : <Navigate to="/login" />;
+};
 
-  // PUBLIC_INTERFACE
-  const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
-  };
-
+const App = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <button 
-          className="theme-toggle" 
-          onClick={toggleTheme}
-          aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
-        >
-          {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
-        </button>
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <p>
-          Current theme: <strong>{theme}</strong>
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <AuthProvider>
+        <Router>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route
+              path="/game"
+              element={
+                <PrivateRoute>
+                  <Game />
+                </PrivateRoute>
+              }
+            />
+            <Route path="/" element={<Navigate to="/game" />} />
+          </Routes>
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
   );
-}
+};
 
 export default App;
